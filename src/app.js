@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import chatRoutes from './routes/chatRoutes.js'
 import cors from 'cors'
 import { saludarUsuario, processMessage, usuarioDesconectado } from "./controllers/chatController.js";
+import sequelize from './config/db.js'
 
 dotenv.config();
 console.clear()
@@ -16,9 +17,9 @@ const io = new SocketIO(server);
 
 
 const corsOptions = {
-    origin: '*',  // Sustituye con tu dominio
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,  // Habilita el envío de cookies desde el cliente
+  origin: '*',  // Sustituye con tu dominio
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,  // Habilita el envío de cookies desde el cliente
 };
 app.use(cors())
 
@@ -36,26 +37,34 @@ io.on("connection", (socket) => {
   saludarUsuario(socket)
 
   socket.on("mensaje", (mensaje) => {
-    processMessage(socket,mensaje.toLowerCase())
+    processMessage(socket, mensaje.toLowerCase())
 
 
   });
 
   socket.on("disconnect", () => {
-      usuarioDesconectado()
+    usuarioDesconectado()
   });
 
 });
 
- app.use("/chat", chatRoutes);
+app.use("/chat", chatRoutes);
 
- app.use((req, res, next) => {
-   res.status(404).send("Not Found");
-     console.log('Solicitud recibida:', req.url);
-     next();
- });
-
-const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`Servidor corriendo en el puerto ${PORT}`);
+app.use((req, res, next) => {
+  res.status(404).send("Not Found");
+  console.log('Solicitud recibida:', req.url);
+  next();
 });
+
+
+sequelize.sync({ force: false }).then(() => {
+
+  const PORT = process.env.PORT || 3001;
+
+  console.log('Conectado a la Base de Datos')
+  server.listen(PORT, () => {
+    console.log(`Servidor corriendo en el puerto ${PORT}`);
+  });
+}).catch((error) => {
+  console.log('Hubo un error' + error)
+})

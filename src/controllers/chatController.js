@@ -1,7 +1,7 @@
 import { OPCIONES } from "../utils/constants.js";
 
 export const saludarUsuario = (socket) => {
-  socket.emit("mensaje", "Hola, ¡bienvenido al chat de la empresa de ropa!");
+  socket.emit("mensaje", "Hola, ¡bienvenido al chat de ...!");
 };
 
 export const usuarioDesconectado = () => {
