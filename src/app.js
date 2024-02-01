@@ -6,6 +6,7 @@ import chatRoutes from './routes/chatRoutes.js'
 import cors from 'cors'
 import { saludarUsuario, processMessage, usuarioDesconectado } from "./controllers/chatController.js";
 import sequelize from './config/db.js'
+import tipoRouter from "./routes/tipoRoutes.js";
 
 dotenv.config();
 console.clear()
@@ -49,6 +50,8 @@ io.on("connection", (socket) => {
 });
 
 app.use("/chat", chatRoutes);
+app.use("/tipos", tipoRouter);
+app.use("/mensajes", tipoRouter);
 
 app.use((req, res, next) => {
   res.status(404).send("Not Found");

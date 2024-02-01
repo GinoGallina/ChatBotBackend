@@ -1,4 +1,5 @@
 import express from "express";
+// eslint-disable-next-line import/extensions
 import { saludarUsuario } from "../controllers/chatController.js";
 
 const chatRouter = express.Router();
@@ -12,8 +13,4 @@ chatRouter.get("/test", (req, res) => {
   res.status(200).set("personalizado", "hoolis").json(data);
 });
 
-chatRouter.post("/mensaje", (req, res) => {
-  const { mensaje } = req.body;
-  // chatController.procesarMensaje(res.socket, mensaje);
-});
 export default chatRouter;
