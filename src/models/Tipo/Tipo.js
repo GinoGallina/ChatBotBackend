@@ -11,7 +11,8 @@ const Tipo = sequelize.define(
       autoIncrement: true,
       allowNull: false,
       validate: {
-        notEmpty: true,
+        notEmpty: { msg: 'El campo "id" no puede ser vacio' },
+        notNull: { msg: 'El campo "id" no puede ser nulo' },
       },
     },
     descripcion: {
