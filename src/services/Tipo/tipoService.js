@@ -10,14 +10,14 @@ export const getAll = async () => {
 //   const tipo = await Tipo.findOne({ where: { deleted_at: null, id } });
 //   return tipo;
 // };
-export const getOne = async (id) => {
-  const tipo = await Tipo.findByPk(id);
-  return tipo;
-};
-
 export const getAllWithDeleted = async () => {
   const tipos = await Tipo.findAll({ paranoid: false });
   return tipos;
+};
+
+export const getOne = async (id) => {
+  const tipo = await Tipo.findByPk(id);
+  return tipo;
 };
 
 export const create = async (tipoData) => {
