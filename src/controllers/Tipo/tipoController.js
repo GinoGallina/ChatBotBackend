@@ -1,3 +1,4 @@
+/* eslint-disable import/extensions */
 // eslint-disable-next-line import/extensions
 import {
   create,
@@ -5,8 +6,8 @@ import {
   getAll,
   getAllWithDeleted,
   getOne,
-  // eslint-disable-next-line import/extensions
 } from "../../services/Tipo/tipoService.js";
+import { hanldeError } from "../../utls/handleError.js";
 
 export const getAllTipos = async (req, res) => {
   const rta = {
@@ -96,24 +97,9 @@ export const createTipo = async (req, res) => {
     rta.mensaje = ["Tipo creado con exito"];
     res.status(200).json(rta);
   } catch (error) {
+    const { mensaje, codigoError } = hanldeError(error);
     rta.success = false;
-    let codigoError;
-    console.log(error);
-    if (
-      error.name === "SequelizeValidationError" ||
-      error.name === "SequelizeUniqueConstraintError"
-    ) {
-      codigoError = 400;
-      const { errors } = error;
-      const mensjaeAMostrar = [];
-      errors.forEach((ValidationErrorItem) => {
-        mensjaeAMostrar.push(ValidationErrorItem.message);
-      });
-      rta.mensaje = mensjaeAMostrar;
-    } else {
-      codigoError = 500;
-      rta.mensaje = [`Error al crear el tipo, error del Servidor`];
-    }
+    rta.mensaje = mensaje;
     res.status(codigoError).json(rta);
   }
 };
