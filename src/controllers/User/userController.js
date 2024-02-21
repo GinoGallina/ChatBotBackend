@@ -1,10 +1,9 @@
 /* eslint-disable import/extensions */
 // eslint-disable-next-line import/no-extraneous-dependencies
 import bcrypt from "bcryptjs";
-import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
-import { create, findOneEmail } from "../../services/User/userService.js";
+import { create } from "../../services/User/userService.js";
 import { hanldeError } from "../../utls/handleError.js";
+import passport from "../../config/passport.js";
 
 export const register = async (req, res) => {
   const rta = {
@@ -34,6 +33,7 @@ export const register = async (req, res) => {
 };
 
 //  Ruta de inicio de sesión
+// eslint-disable-next-line consistent-return
 export const login = async (req, res, next) => {
   const rta = {
     data: null,
@@ -42,18 +42,19 @@ export const login = async (req, res, next) => {
   };
   try {
     // eslint-disable-next-line consistent-return
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local-login", (err, user, info) => {
       if (err) {
         rta.mensaje = `Error interno, ${err}`;
         rta.success = false;
         return res.status(500).json(rta);
       }
       if (!user) {
-        rta.mensaje = info;
+        rta.mensaje = info.message;
         rta.success = false;
         return res.status(401).json(rta);
       }
       req.logIn(user, (error) => {
+        // console.log(`logged ${req.isAuthenticated()}`);
         if (error) {
           rta.mensaje = `Error interno ${error.message}`;
           rta.success = false;
@@ -63,6 +64,7 @@ export const login = async (req, res, next) => {
         rta.success = true;
         rta.data = user;
         return res.status(200).json(rta);
+        // return res.redirect("/tipos/all");
       });
     })(req, res, next);
   } catch (error) {
@@ -72,39 +74,6 @@ export const login = async (req, res, next) => {
   }
 };
 
-// Configuración de la estrategia de autenticación local con Passport
-passport.use(
-  new LocalStrategy(
-    {
-      usernameField: "email",
-      passwordField: "password",
-    },
-    async (email, password, done) => {
-      try {
-        // Busca al usuario en la base de datos por correo electrónico
-        const user = await findOneEmail(email);
-        if (!user) {
-          // Usuario no encontrado
-          return done(null, false, {
-            message: "Correo electrónico no registrado",
-          });
-        }
-        // Verifica la contraseña
-        const passwordMatch = await bcrypt.compare(password, user.password);
-        if (!passwordMatch) {
-          // Contraseña incorrecta
-          return done(null, false, { message: "Contraseña incorrecta" });
-        }
-
-        // Autenticación exitosa
-        return done(null, user);
-      } catch (error) {
-        return done(error);
-      }
-    },
-  ),
-);
-
 export const logout = (req, res) => {
   const rta = {
     data: null,
@@ -112,13 +81,11 @@ export const logout = (req, res) => {
     success: null,
   };
   try {
-    req.logout();
-    res.redirect("/");
-    console.log("a");
+    req.logout(() => {});
+    return res.redirect("/");
   } catch (error) {
-    console.log("b");
     rta.mensaje = `Error al desloguearse, ${error.message}`;
     rta.success = false;
-    res.send(500).json(rta);
+    return res.status(500).json(rta);
   }
 };

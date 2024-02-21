@@ -2,15 +2,20 @@ import express from "express";
 import http from "http";
 import { Server as SocketIO } from "socket.io";
 import dotenv from "dotenv";
-import chatRoutes from './routes/chatRoutes.js'
 import cors from 'cors'
 import { saludarUsuario, processMessage, usuarioDesconectado } from "./controllers/chatController.js";
+
+//DB
 import sequelize from './config/db.js'
-import tipoRouter from "./routes/tipoRoutes.js";
-import User from "./models/User/User.js";
-import passport from "passport";
-import LocalStrategy from 'passport-local';
+
+//Passport
+import passport from "./config/passport.js";
 import session from 'express-session';
+import cookieParser from 'cookie-parser'
+
+//Routes
+import chatRoutes from './routes/chatRoutes.js'
+import tipoRouter from "./routes/tipoRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 
 dotenv.config();
@@ -22,47 +27,36 @@ const io = new SocketIO(server);
 
 
 
-app.use(cors())
+ app.use(cors({
+   origin: "http://localhost:5173",
+   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+   credentials: true,
+ }));
+app.use((req,res,next)=>{
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next()
+})
 
 //Configuraciones de express
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(session({ secret: process.env.SECRET_KEY, resave: false, saveUninitialized: false }));
+//Config passport
+app.use(cookieParser());
+app.use(session({
+  secret: process.env.SECRET_KEY, resave: true, saveUninitialized: true }));
+
+  // , cookie: {
+  // secure: false,
+  //   sameSite: 'none',
+  // }  Para cuando es https
+
 app.use(passport.initialize());
 app.use(passport.session());
 // Cambio en la línea que utiliza __dirname
 app.use(express.static(new URL('../public', import.meta.url).pathname));
-
-
-
-passport.use('/login',
-  new LocalStrategy(async (username, password, done) => {
-    try {
-      const user = await User.findOne({ where: { username } });
-      if (!user) {
-        return done(null, false, { message: "Usuario no encontrado." });
-      }
-      if (!user.validPassword(password)) {
-        return done(null, false, { message: "Contraseña incorrecta." });
-      }
-      return done(null, user);
-    } catch (error) {
-      return done(error);
-    }
-  }),
-);
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findByPk(id);
-    done(null, user);
-  } catch (error) {
-    done(error);
-  }
-});
 
 
 
@@ -81,6 +75,8 @@ io.on("connection", (socket) => {
   });
 
 });
+
+export default passport;
 
 app.use("/chat", chatRoutes);
 app.use("/tipos", tipoRouter);

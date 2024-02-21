@@ -10,6 +10,8 @@ import {
 import { hanldeError } from "../../utls/handleError.js";
 
 export const getAllTipos = async (req, res) => {
+  console.log(req.cookies);
+  console.log(req.isAuthenticated());
   const rta = {
     data: null,
     mensaje: [],
